@@ -1,0 +1,52 @@
+RewriteEngine On
+
+# Prevent redirect loops
+RewriteCond %{ENV:REDIRECT_STATUS} 200
+RewriteRule ^ - [L]
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteCond %{THE_REQUEST} \s([^\s?]*)
+RewriteRule ^ https://%{HTTP_HOST}%1 [R=301,L]
+
+# www → non-www
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteCond %{THE_REQUEST} \s([^\s?]*)
+RewriteRule ^ https://%1%2 [R=301,L]
+
+# Remove multiple slashes
+RewriteCond %{THE_REQUEST} \s([^\s?]*)//
+RewriteCond %{THE_REQUEST} \s([^\s?]*)
+RewriteRule ^ https://%{HTTP_HOST}%1 [R=301,L]
+
+# DirectorySlash Off + manual trailing slash for real directories
+DirectorySlash Off
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*[^/])$ https://empoweringwomensexpo.com/$1/ [R=301,L]
+
+# Remove trailing slash for files (non-directories)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ https://empoweringwomensexpo.com/$1 [R=301,L]
+
+# index.html → clean URL
+RewriteRule ^(.*)index\.html$ https://empoweringwomensexpo.com/$1 [R=301,L]
+
+# Directory index
+DirectoryIndex index.html
+
+# Custom 404
+ErrorDocument 404 /404.html
+
+# Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html "access plus 1 hour"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
